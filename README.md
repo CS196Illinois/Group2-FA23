@@ -1,8 +1,8 @@
-# Group TEAM_NUMBER
-Group Name: TEAM_NAME
+# Group 2
+Group Name: Group 2
 
-[MVP Link](http://cs196.cs.illinois.edu)
+[MVP Link](https://docs.google.com/document/d/1GhIhkwrj6015c80Py-lWT0YYKLgoZomYyMKiFVHlF6E/edit?usp=drivesdk)
 
-Team Members: STUDENTS_NETIDS
+Team Members: graced4, hudupi2, chahitj2, ahhua2, dhanish2, manham2
 
-Project Manager: PM_NETID
+Project Manager: yse2

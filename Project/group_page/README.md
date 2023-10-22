@@ -45,3 +45,8 @@ Map<String, List<String>> = {
 - Adding pipes in between the charecteristics of the groupCard
 - Removing template styles
 - Swapping the chat and info icons in the infosection.
+
+## Suggestions:
+- widgets/ functions:
+-   .toList, .map
+-   --> userCourses.enteries.map();

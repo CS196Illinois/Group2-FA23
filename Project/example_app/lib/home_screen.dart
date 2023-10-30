@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 // importing local files in the same directory
 import 'profile_screen.dart';
 import 'groups_screen.dart';
+import 'homeScreen_content.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -38,42 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // List of widgets with the first one being the content to be displayed
     List<Widget> widgetOptions = <Widget>[
       const ProfileScreen(),
-      StreamBuilder<List<Map<String, dynamic>>>(
-        stream: _stream,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.data!.isEmpty) {
-            return const Center(child: Text('No items found'));
-          }
-          final items = snapshot.data!;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  'Items List',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: items.length,
-                  itemBuilder: (context, index) {
-                    final item = items[index];
-                    return ListTile(
-                      title: Text(item['name']),
-                      subtitle: Text(item['image_url']),
-                    );
-                  },
-                ),
-              ),
-            ],
-          );
-        },
-      ),
+      HomeScreenContent(stream: _stream),
       const GroupsScreen(),
     ];
 

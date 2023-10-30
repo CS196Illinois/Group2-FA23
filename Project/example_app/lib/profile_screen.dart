@@ -20,7 +20,6 @@ class ProfileScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () async {
                 await Supabase.instance.client.auth.signOut();
-                Navigator.of(context).popUntil((route) => route.isFirst);
               },
               child: const Text('Sign Out'),
             ),

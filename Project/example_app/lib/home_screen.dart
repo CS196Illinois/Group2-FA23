@@ -1,7 +1,7 @@
 // importing packages
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-// importing files
+// importing local files in the same directory
 import 'profile_screen.dart';
 import 'groups_screen.dart';
 

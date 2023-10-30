@@ -16,19 +16,21 @@ class LoginScreen extends StatelessWidget {
           onSignInComplete: (response) {
             // Handle sign in complete
             if (response.user != null) {
-                print('Sign in complete: $response');
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeScreen()));
+              print('Sign in complete: $response');
+              Navigator.pushReplacement(context,
+                  MaterialPageRoute(builder: (context) => const HomeScreen()));
             } else {
-                print('Sign in user: ${response.user}');
+              print('Sign in user: ${response.user}');
             }
           },
           onSignUpComplete: (response) {
             // Handle sign up complete
             if (response.user != null) {
-                print('Sign up complete: $response');
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeScreen()));
+              print('Sign up complete: $response');
+              Navigator.pushReplacement(context,
+                  MaterialPageRoute(builder: (context) => const HomeScreen()));
             } else {
-                print('Sign in user: ${response.user}');
+              print('Sign in user: ${response.user}');
             }
           },
           metadataFields: [

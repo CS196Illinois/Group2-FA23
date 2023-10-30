@@ -35,7 +35,7 @@ made on your branch that you want to keep are stored somewhere else on your lapt
 3. **Create A Supabase Account (Illinois Email) thru Invite**: If you haven't already, accept the invite I sent to your Illinois Email and create your Supabase account.
 You should be able to see a project called **Study-Buddies[124HFA23]**. It should look like this: ![Study Buddies Project on Supabase](https://i.imgur.com/mmCdplw.png)
 
-3. **Get Dependencies**: Navigate to the project directory (`Group2-FA23/Project/example_app`) in your terminal and run `flutter pub get` to install all the necessary dependencies.
+3. **Get Dependencies**: Navigate to the project directory (`Group2-FA23/Project/example_app`) in your terminal and run `flutter upgrade` and `flutter pub get` to install all the necessary dependencies.
 
 5. **Run the App**: 
    - Ensure you have an emulator running or a device connected to your computer or CHROME.

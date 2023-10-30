@@ -26,43 +26,59 @@ class GroupsScreen extends StatefulWidget {
 }
 
 class _GroupsScreenState extends State<GroupsScreen> {
+  // A Future that holds a list of maps, each map representing an item fetched from the database
   late final Future<List<Map<String, dynamic>>> _future;
 
   @override
   void initState() {
     super.initState();
+    // Fetching data from the 'items' table in the Supabase database when the widget is initialized
     _future = Supabase.instance.client.from('items').select().then((response) {
       if (response == null) {
+        // If there is an error fetching the data, print the error and return an empty list
         print('Error fetching items: ${response.error}');
         return [];
       } else {
-        return List<Map<String, dynamic>>.from(response);
+        // If the data is fetched successfully, return the list of items
+        return List<Map<String, dynamic>>.from(
+            response); // casting response into the List<Map<String, dynamic>> type
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Scaffold widget provides the basic visual structure for the screen
     return Scaffold(
+      // AppBar widget displays a Material Design app bar at the top of the screen
       appBar: AppBar(
         title: const Text('Groups'),
       ),
+      // FutureBuilder widget rebuilds its part of the widget tree based on the latest snapshot of the future
       body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _future,
+        future: _future, // The future to observe
+        // The builder callback that returns a widget based on the latest snapshot
         builder: (context, snapshot) {
+          // If the future is still running, show a loading indicator
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
+          // If the future completes with no data, show a message indicating no items were found
           if (snapshot.data!.isEmpty) {
             return const Center(child: Text('No items found'));
           }
+          // If the future completes with data, display the list of items
           final items = snapshot.data!;
           return ListView.builder(
+            // The number of items in the list
             itemCount: items.length,
+            // Builder callback to create a ListTile widget for each item in the list
             itemBuilder: (context, index) {
               final item = items[index];
               return ListTile(
+                // Display the name of the item
                 title: Text(item['name']),
+                // Display the image URL of the item
                 subtitle: Text(item['image_url']),
               );
             },

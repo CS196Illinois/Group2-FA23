@@ -39,7 +39,8 @@ You should be able to see a project called **Study-Buddies[124HFA23]**. It shoul
 
 5. **Run the App**: 
    - Ensure you have an emulator running or a device connected to your computer or CHROME.
-   - Run `flutter run` in the terminal to start the app.
+   - Run `flutter run -d web-server --web-hostname=0.0.0.0 --web-port=8080` in the terminal to start the app on a web browser.
+   - You can also do `flutter run` but I haven't tested the app on iOS or Android Devices.
 
 6. **Sign In/Sign Up**: Use the login screen to sign in or sign up. You'll need to create a new user so just sign up with your illinois email and you'll get a verification link sent to your email and once you verify your account. You'll be able to login and view all the screens.
 
@@ -52,3 +53,10 @@ You should be able to see a project called **Study-Buddies[124HFA23]**. It shoul
 - **Navigation**: Users can navigate between different sections of the app using the bottom navigation bar.
 - **Sign Out**: Users can sign out from the Profile Screen. Your login state is preserved so you won't have to keep logging in and out
 
+## Known Bugs
+
+**Unable to Login Bug:**
+> Access to XMLHttpRequest at 'https://gekoanauyvavguqpnopq.supabase.co/auth/v1/token?grant_type=password' from origin 'http://localhost:8080' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+When this error occurs, the easiest way to resolve the issue is to fully close the browser (NOT JUST THE TAB). Then, go to Supabase Dashboard and **Restart Project** in Settings. Then run the same flutter command as before.
+![Restart Project](image.png)

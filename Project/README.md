@@ -26,6 +26,10 @@ Home Screen Content is separated because as the application grows, having each w
 
 ## How to Run the App Locally
 
+#### Here's a [Video Walkthrough](https://illinois.zoom.us/rec/share/ia05Yug6fuw5piLOthHAWR5B93vEHwbF12IYwLDnQF7A4nY-F4L3erZwRrRKeraZ.Qm6idcd1YJgAnYFl?startTime=1698705236000) which goes over all the steps below.
+
+You should still read the **Functinality section** and **Known Bugs**.
+
 1. **Pull the changes on the master branch to your local master branch**: First, make sure that any changes that you
 made on the master branch that you want to keep are stored somewhere else on your laptop. Then do `git checkout master` and `git pull` in your terminal. 
 

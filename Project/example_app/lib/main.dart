@@ -102,6 +102,12 @@ class _MyAppState extends State<MyApp> {
   }
 
   // Build the widget tree
+  /**
+   * The build function in the _MyAppState class is responsible for constructing the widget tree that Flutter will display on the screen. 
+   * It returns a MaterialApp widget, configuring the application's title and theme, and conditionally displaying either the HomeScreen or LoginScreen 
+   * depending on the user's authentication state, which is represented by the _isSignedIn boolean variable. 
+   * The theme of the application is defined with a deep purple color scheme and Material Design 3 features enabled.
+   */
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

@@ -11,11 +11,6 @@ import 'home_screen.dart';
 Future<void> main() async {
   // Ensuring that widget binding is initialized
   WidgetsFlutterBinding.ensureInitialized();
-  // Initializing Supabase with the provided URL and anonymous key (You will need to change this in `supabase_credentials.dart`)
-  await Supabase.initialize(
-    url: supabaseUrl,
-    anonKey: supabaseAnonKey,
-  );
   // Running the app with MyApp as the root widget
   runApp(const MyApp());
 }
@@ -45,7 +40,7 @@ class _MyAppState extends State<MyApp> {
     _setupAuthChangeListener(); // Setting up a listener for authentication state changes
   }
 
-  // initialize Supabase
+  // initialize Supabase with the provided URL and anonymous key
   Future<void> _initializeSupabase() async {
     await Supabase.initialize(
       url: supabaseUrl,

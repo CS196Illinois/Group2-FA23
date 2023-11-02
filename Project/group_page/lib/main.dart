@@ -159,10 +159,10 @@ class GroupList extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(5),
       margin: const EdgeInsets.all(10),
-      child: 
+      /*child: 
       userCourses.forEach((key, value) {
         StaticGroupCard card = 
-      })
+      }) */
 
     );
   }

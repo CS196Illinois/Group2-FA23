@@ -37,6 +37,100 @@ class ProfileScreen extends StatelessWidget {
           // Aligning children to the center of the main axis
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Container(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: const Center(
+                child: Text(
+                  'Jenni Sanford',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+                ),
+              ),
+            ),
+            Center(
+              child: Text(
+                'Computer Science',
+                style: TextStyle(color: Colors.grey[800], fontSize: 16),
+              ),
+            ),
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.only(top: 10.0),
+                child: Text(
+                  'Hey, I’m Jenni! I love math and computer science. Here’s my Insta if you wanna study together: @jenni__sanford',
+                  style: TextStyle(fontSize: 12),
+                ),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(top: 10.0),
+              child: Text(
+                'Classes',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(top: 5.0),
+              child: Text(
+                'Computer Science Orientation (CS 100)',
+                style: TextStyle(fontSize: 13),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(top: 3.0),
+              child: Text(
+                'Writing and Research (RHET 105)',
+                style: TextStyle(fontSize: 13),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(top: 3.0),
+              child: Text(
+                'Calculus II (Math 231)',
+                style: TextStyle(fontSize: 13),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(top: 3.0),
+              child: Text(
+                'Intro to Computer Science (CS 124)',
+                style: TextStyle(fontSize: 13),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(top: 10.0),
+              child: Text(
+                'Groups',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(top: 3.0),
+              child: Text(
+                'Calculus II Study Group',
+                style: TextStyle(fontSize: 13),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(top: 3.0),
+              child: Text(
+                'CS 124 Study Group',
+                style: TextStyle(fontSize: 13),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(top: 3.0),
+              child: Text(
+                'RHET 105 Group',
+                style: TextStyle(fontSize: 13),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
+              child: Text(
+                'Matches ✔️',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+            ),
             // Displaying the user's email
             Text('Email: ${user?.email}'),
             // SizedBox widget provides a box with a specified size

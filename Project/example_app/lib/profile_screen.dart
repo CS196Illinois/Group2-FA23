@@ -1,3 +1,5 @@
+// ignore_for_file: slash_for_doc_comments
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -20,11 +22,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class ProfileScreen extends StatelessWidget {
   // Constructor for the ProfileScreen widget
   const ProfileScreen({Key? key}) : super(key: key);
+  final double coverHeight = 100;
+  final double profileHeight = 80;
 
   @override
   Widget build(BuildContext context) {
     // Fetching the current user from Supabase
     final user = Supabase.instance.client.auth.currentUser;
+
     // Scaffold widget provides a high-level structure for the screen
     return Scaffold(
       appBar: AppBar(
@@ -37,6 +42,16 @@ class ProfileScreen extends StatelessWidget {
           // Aligning children to the center of the main axis
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  buildCoverImage(),
+                  Positioned(
+                    top: 10,
+                    child: buildProfileImage(),
+                  )
+                ]),
             Container(
               padding: const EdgeInsets.only(bottom: 8),
               child: const Center(
@@ -46,6 +61,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
+
             Center(
               child: Text(
                 'Computer Science',
@@ -54,10 +70,15 @@ class ProfileScreen extends StatelessWidget {
             ),
             const Center(
               child: Padding(
-                padding: EdgeInsets.only(top: 10.0),
+                padding: EdgeInsets.only(
+                  top: 10.0,
+                  left: 5.0,
+                  right: 5.0,
+                ),
                 child: Text(
                   'Hey, I’m Jenni! I love math and computer science. Here’s my Insta if you wanna study together: @jenni__sanford',
                   style: TextStyle(fontSize: 12),
+                  textAlign: TextAlign.center,
                 ),
               ),
             ),
@@ -68,30 +89,34 @@ class ProfileScreen extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.only(top: 5.0),
-              child: Text(
+            Container(
+              margin: const EdgeInsets.all(5),
+              color: const Color.fromARGB(255, 232, 180, 176),
+              child: const Text(
                 'Computer Science Orientation (CS 100)',
                 style: TextStyle(fontSize: 13),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.only(top: 3.0),
-              child: Text(
+            Container(
+              margin: const EdgeInsets.all(5),
+              color: const Color.fromARGB(255, 190, 236, 237),
+              child: const Text(
                 'Writing and Research (RHET 105)',
                 style: TextStyle(fontSize: 13),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.only(top: 3.0),
-              child: Text(
+            Container(
+              margin: const EdgeInsets.all(5),
+              color: const Color.fromARGB(255, 187, 176, 232),
+              child: const Text(
                 'Calculus II (Math 231)',
                 style: TextStyle(fontSize: 13),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.only(top: 3.0),
-              child: Text(
+            Container(
+              margin: const EdgeInsets.all(5),
+              color: const Color.fromARGB(255, 181, 232, 176),
+              child: const Text(
                 'Intro to Computer Science (CS 124)',
                 style: TextStyle(fontSize: 13),
               ),
@@ -151,4 +176,21 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget buildCoverImage() => Container(
+        color: Colors.grey,
+        child: Image.network(
+          "https://img.rawpixel.com/s3fs-private/rawpixel_images/website_content/v1016-c-08_1-ksh6mza3.jpg?w=800&dpr=1&fit=default&crop=default&q=65&vib=3&con=3&usm=15&bg=F4F4F3&ixlib=js-2.2.1&s=f584d8501c27c5f649bc2cfce50705c0",
+          width: double.infinity,
+          height: coverHeight,
+          fit: BoxFit.cover,
+        ),
+      );
+
+  Widget buildProfileImage() => CircleAvatar(
+        radius: profileHeight / 2,
+        backgroundColor: Colors.grey.shade800,
+        backgroundImage: NetworkImage(
+            "https://static.generated.photos/vue-static/face-generator/landing/wall/7.jpg"),
+      );
 }

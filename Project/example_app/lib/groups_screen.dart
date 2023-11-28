@@ -27,23 +27,30 @@ class GroupsScreen extends StatefulWidget {
 
 class _GroupsScreenState extends State<GroupsScreen> {
   // A Future that holds a list of maps, each map representing an item fetched from the database
-  late final Future<List<Map<String, dynamic>>> _future;
+  // late final Future<List<Map<String, dynamic>>> _future;
+  late final Stream<List<Map<String, dynamic>>> _stream;
 
   @override
   void initState() {
     super.initState();
     // Fetching data from the 'items' table in the Supabase database when the widget is initialized
-    _future = Supabase.instance.client.from('items').select().then((response) {
-      if (response == null) {
-        // If there is an error fetching the data, print the error and return an empty list
-        print('Error fetching items: ${response.error}');
-        return [];
-      } else {
-        // If the data is fetched successfully, return the list of items
-        return List<Map<String, dynamic>>.from(
-            response); // casting response into the List<Map<String, dynamic>> type
-      }
-    });
+    // _future = Supabase.instance.client.from('items').select().then((response) {
+    User? user = Supabase.instance.client.auth.currentUser;
+    _stream = Supabase.instance.client.from('users').stream(primaryKey: [
+      'email'
+    ]).eq('email', user?.email).limit(1).map((maps) => List<Map<String, dynamic>>.from(maps));
+    _stream.map((maps) => print(List<Map<String, dynamic>>.from(maps)));
+    // then((response) {
+    //   if (response == null) {
+    //     // If there is an error fetching the data, print the error and return an empty list
+    //     print('Error fetching items: ${response.error}');
+    //     return [];
+    //   } else {
+    //     // If the data is fetched successfully, return the list of items
+    //     return List<Map<String, dynamic>>.from(
+    //         response); // casting response into the List<Map<String, dynamic>> type
+    //   }
+    // });
   }
 
   @override
@@ -55,8 +62,8 @@ class _GroupsScreenState extends State<GroupsScreen> {
         title: const Text('Groups'),
       ),
       // FutureBuilder widget rebuilds its part of the widget tree based on the latest snapshot of the future
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _future, // The future to observe
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: _stream, // The future to observe
         // The builder callback that returns a widget based on the latest snapshot
         builder: (context, snapshot) {
           // If the future is still running, show a loading indicator
@@ -79,7 +86,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
                 // Display the name of the item
                 title: Text(item['name']),
                 // Display the image URL of the item
-                subtitle: Text(item['image_url']),
+                subtitle: Text(item['email']),
               );
             },
           );

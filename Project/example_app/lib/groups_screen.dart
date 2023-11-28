@@ -33,13 +33,16 @@ class _GroupsScreenState extends State<GroupsScreen> {
   void initState() {
     super.initState();
     // Fetching data from the 'items' table in the Supabase database when the widget is initialized
-    _future = Supabase.instance.client.from('items').select().then((response) {
+    _future =
+        Supabase.instance.client.from('courses').select().then((response) {
       if (response == null) {
         // If there is an error fetching the data, print the error and return an empty list
         print('Error fetching items: ${response.error}');
         return [];
       } else {
+        //print(response);
         // If the data is fetched successfully, return the list of items
+        print('Here is my response: ${response}');
         return List<Map<String, dynamic>>.from(
             response); // casting response into the List<Map<String, dynamic>> type
       }
@@ -65,6 +68,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
           }
           // If the future completes with no data, show a message indicating no items were found
           if (snapshot.data!.isEmpty) {
+            //print(snapshot.data);
             return const Center(child: Text('No items found'));
           }
           // If the future completes with data, display the list of items
@@ -75,11 +79,13 @@ class _GroupsScreenState extends State<GroupsScreen> {
             // Builder callback to create a ListTile widget for each item in the list
             itemBuilder: (context, index) {
               final item = items[index];
+              String a = item['course_subject']+ item['course_number'].toString();
+
               return ListTile(
                 // Display the name of the item
-                title: Text(item['name']),
+                title: Text(a),
                 // Display the image URL of the item
-                subtitle: Text(item['image_url']),
+                subtitle: Text(item['course_name']),
               );
             },
           );

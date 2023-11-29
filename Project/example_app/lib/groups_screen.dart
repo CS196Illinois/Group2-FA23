@@ -35,11 +35,12 @@ class _GroupsScreenState extends State<GroupsScreen> {
   @override
   void initState() {
     super.initState();
+    _stream = supabase
+          .from('courses')
+          .stream(primaryKey: ['course_ID'])
+          .map((maps) => List<Map<String, dynamic>>.from(maps));
+    //_fetchUserGroups();
     // Fetching data from the 'items' table in the Supabase database when the widget is initialized
-    user_groups =
-        supabase.from('users').select('groups').eq('email', user?.email);
-    _stream = supabase.from('courses').stream(primaryKey: ['course_ID']).map(
-        (maps) => List<Map<String, dynamic>>.from(maps));
     /*_stream =
         Supabase.instance.client.from('courses').select().then((response) {
       if (response == null) {
@@ -55,6 +56,24 @@ class _GroupsScreenState extends State<GroupsScreen> {
       }
     }); */
   }
+
+  /*void _fetchUserGroups() async {
+    if (user != null) {
+      // Assuming the user's groups are stored in a column named 'groups' in the 'users' table
+      user_groups = await supabase
+          .from('users')
+          .select('groups')
+          .eq('email', user?.email);
+      _stream = supabase
+          .from('courses')
+          .stream(primaryKey: ['course_ID'])
+          .map((maps) => List<Map<String, dynamic>>.from(maps))
+          .map((courses) => courses
+              .where((course) =>
+                  !user_groups.contains(course['course_ID'].toString()))
+              .toList());
+    }
+  }*/
 
   @override
   Widget build(BuildContext context) {

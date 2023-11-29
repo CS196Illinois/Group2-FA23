@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:js' as js;
 
 /**
  * The `GroupsScreen` widget is defined as a `StatefulWidget` because it manages mutable state within itself, specifically the state of the future `_future` that holds the data fetched from the Supabase database.
@@ -28,15 +29,17 @@ class GroupsScreen extends StatefulWidget {
 class _GroupsScreenState extends State<GroupsScreen> {
   // A Future that holds a list of maps, each map representing an item fetched from the database
   late final Stream<List<Map<String, dynamic>>> _stream;
-
+  final supabase = Supabase.instance.client;
+  User? user = Supabase.instance.client.auth.currentUser;
+  List<dynamic> user_groups = [];
   @override
   void initState() {
     super.initState();
     // Fetching data from the 'items' table in the Supabase database when the widget is initialized
-    User? user = Supabase.instance.client.auth.currentUser;
-    _stream = Supabase.instance.client.from('courses').stream(primaryKey: [
-      'course_ID'
-    ]).map((maps) => List<Map<String, dynamic>>.from(maps));
+    user_groups =
+        supabase.from('users').select('groups').eq('email', user?.email);
+    _stream = supabase.from('courses').stream(primaryKey: ['course_ID']).map(
+        (maps) => List<Map<String, dynamic>>.from(maps));
     /*_stream =
         Supabase.instance.client.from('courses').select().then((response) {
       if (response == null) {
@@ -93,7 +96,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
                   print("tap item index: $index");
                 },
                 child: Dismissible(
-                  key: Key(item['course_subject']),
+                  key: UniqueKey(),
                   background: Container(
                     color: Colors.blue,
                     child: Align(
@@ -117,20 +120,35 @@ class _GroupsScreenState extends State<GroupsScreen> {
                   confirmDismiss: (direction) async {
                     if (direction == DismissDirection.startToEnd) {
                       setState(() {
-                        //add url code
+                        js.context
+                            .callMethod('open', [item['course_explorer_link']]);
                       });
                       return false;
                     } else {
+                      final data = await supabase
+                          .from('users')
+                          .select('groups')
+                          .eq('email', user?.email);
+                      List<dynamic> user_groups = data[0]['groups'];
+                      print('Here is course: ${user_groups}');
+                      user_groups.add(item['course_ID']);
+                      await supabase
+                          .from('users')
+                          .update({'groups': user_groups}).match(
+                              {'email': user?.email});
+                      print('Here is course: ${user_groups}');
+
                       final snackbarController =
                           ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
                               'Joined ${item['course_subject'] + item['course_number'].toString()} group chat'),
+                          //supabase
                           //action: SnackBarAction(label: 'Undo', onPressed: () => delete = false),
                         ),
                       );
                       await snackbarController.closed;
-                      return false;
+                      return true;
                     }
                   },
                   onDismissed: (_) {

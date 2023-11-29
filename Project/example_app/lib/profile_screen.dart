@@ -19,11 +19,31 @@ import 'package:supabase_flutter/supabase_flutter.dart';
  * This is just for THE EXAMPLE APP. You may have to turn this into a `StatefulWidget` widget as you continue building this screen as your matches may change over time.
  * Look at the groups_screen.dart or home_screen.dart for an example of `StatefulWidget`.
  */
-class ProfileScreen extends StatelessWidget {
-  // Constructor for the ProfileScreen widget
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
+
+  @override
+  _ProfileScreenState createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
   final double coverHeight = 100;
   final double profileHeight = 80;
+
+  late final Stream<List<Map<String, dynamic>>> _stream;
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetching data from the 'items' table in the Supabase database when the widget is initialized
+    User? user = Supabase.instance.client.auth.currentUser;
+    _stream = Supabase.instance.client
+        .from('users')
+        .stream(primaryKey: ['email'])
+        .eq('email', user?.email)
+        .limit(1)
+        .map((maps) => List<Map<String, dynamic>>.from(maps));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,143 +56,185 @@ class ProfileScreen extends StatelessWidget {
         title: const Text('Profile'),
       ),
       // Center widget centers its child widget
-      body: Center(
-        // Column widget arranges its children in a vertical line
-        child: Column(
-          // Aligning children to the center of the main axis
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  buildCoverImage(),
-                  Positioned(
-                    top: 10,
-                    child: buildProfileImage(),
-                  )
-                ]),
-            Container(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: const Center(
-                child: Text(
-                  'Jenni Sanford',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
-                ),
-              ),
-            ),
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: _stream, // The future to observe
+        // The builder callback that returns a widget based on the latest snapshot
+        builder: (context, snapshot) {
+          // If the future is still running, show a loading indicator
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          // If the future completes with no data, show a message indicating no items were found
+          if (snapshot.data!.isEmpty) {
+            return const Center(child: Text('No items found'));
+          }
+          // If the future completes with data, display the list of items
+          final items = snapshot.data!;
+          return ListView.builder(
+            // The number of items in the list
+            itemCount: items.length,
+            // Builder callback to create a ListTile widget for each item in the list
+            itemBuilder: (context, index) {
+              final item = items[index];
+              print(item['name']);
+              print(item['email']);
+              print(item['major']);
+              print(item['bio']);
+              print(item['courses']);
+              print(item['groups']);
+              print(item['matches']);
 
-            Center(
-              child: Text(
-                'Computer Science',
-                style: TextStyle(color: Colors.grey[800], fontSize: 16),
-              ),
-            ),
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.only(
-                  top: 10.0,
-                  left: 5.0,
-                  right: 5.0,
+              // print(item[]);
+              return Center(
+                // Display the name of the item
+                //title: Text(item['name']),
+                // Display the image URL of the item
+                //subtitle: Text(item['email']));
+                child: Column(
+                  // Aligning children to the center of the main axis
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Stack(
+                        clipBehavior: Clip.none,
+                        alignment: Alignment.center,
+                        children: [
+                          buildCoverImage(),
+                          Positioned(
+                            top: 10,
+                            child: buildProfileImage(),
+                          )
+                        ]),
+                    Container(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Center(
+                        child: Text(
+                          item['name'],
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 30),
+                        ),
+                      ),
+                    ),
+
+                    Center(
+                      child: Text(
+                        item['major'],
+                        style: TextStyle(color: Colors.grey[800], fontSize: 16),
+                      ),
+                    ),
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          top: 10.0,
+                          left: 5.0,
+                          right: 5.0,
+                        ),
+                        child: Text(
+                          item['bio'],
+                          style: const TextStyle(fontSize: 12),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(top: 10.0),
+                      child: Text(
+                        'Classes',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                    ),
+                    // createContainerForClasses(item['courses']),
+                    Container(
+                      margin: const EdgeInsets.all(5),
+                      color: const Color.fromARGB(255, 232, 180, 176),
+                      child: const Text(
+                        'Computer Science Orientation (CS 100)',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.all(5),
+                      color: const Color.fromARGB(255, 190, 236, 237),
+                      child: const Text(
+                        'Writing and Research (RHET 105)',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.all(5),
+                      color: const Color.fromARGB(255, 187, 176, 232),
+                      child: const Text(
+                        'Calculus II (Math 231)',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.all(5),
+                      color: const Color.fromARGB(255, 181, 232, 176),
+                      child: const Text(
+                        'Intro to Computer Science (CS 124)',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(top: 10.0),
+                      child: Text(
+                        'Groups',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(top: 3.0),
+                      child: Text(
+                        'Calculus II Study Group',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(top: 3.0),
+                      child: Text(
+                        'CS 124 Study Group',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(top: 3.0),
+                      child: Text(
+                        'RHET 105 Group',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
+                      child: Text(
+                        'Matches ✔️',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                    ),
+                    // Displaying the user's email
+                    Text('Email: ${user?.email}'),
+                    // SizedBox widget provides a box with a specified size
+                    const SizedBox(height: 20),
+                    // ElevatedButton widget provides a Material Design raised button
+                    ElevatedButton(
+                      // Callback function when the button is pressed
+                      onPressed: () async {
+                        // Signing out the user from Supabase
+                        await Supabase.instance.client.auth
+                            .signOut(); // takes them back to the login screen
+                      },
+                      // Text widget provides a label for the button
+                      child: const Text('Sign Out'),
+                    ),
+                  ],
                 ),
-                child: Text(
-                  'Hey, I’m Jenni! I love math and computer science. Here’s my Insta if you wanna study together: @jenni__sanford',
-                  style: TextStyle(fontSize: 12),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.only(top: 10.0),
-              child: Text(
-                'Classes',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.all(5),
-              color: const Color.fromARGB(255, 232, 180, 176),
-              child: const Text(
-                'Computer Science Orientation (CS 100)',
-                style: TextStyle(fontSize: 13),
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.all(5),
-              color: const Color.fromARGB(255, 190, 236, 237),
-              child: const Text(
-                'Writing and Research (RHET 105)',
-                style: TextStyle(fontSize: 13),
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.all(5),
-              color: const Color.fromARGB(255, 187, 176, 232),
-              child: const Text(
-                'Calculus II (Math 231)',
-                style: TextStyle(fontSize: 13),
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.all(5),
-              color: const Color.fromARGB(255, 181, 232, 176),
-              child: const Text(
-                'Intro to Computer Science (CS 124)',
-                style: TextStyle(fontSize: 13),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.only(top: 10.0),
-              child: Text(
-                'Groups',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.only(top: 3.0),
-              child: Text(
-                'Calculus II Study Group',
-                style: TextStyle(fontSize: 13),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.only(top: 3.0),
-              child: Text(
-                'CS 124 Study Group',
-                style: TextStyle(fontSize: 13),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.only(top: 3.0),
-              child: Text(
-                'RHET 105 Group',
-                style: TextStyle(fontSize: 13),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
-              child: Text(
-                'Matches ✔️',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-            ),
-            // Displaying the user's email
-            Text('Email: ${user?.email}'),
-            // SizedBox widget provides a box with a specified size
-            const SizedBox(height: 20),
-            // ElevatedButton widget provides a Material Design raised button
-            ElevatedButton(
-              // Callback function when the button is pressed
-              onPressed: () async {
-                // Signing out the user from Supabase
-                await Supabase.instance.client.auth
-                    .signOut(); // takes them back to the login screen
-              },
-              // Text widget provides a label for the button
-              child: const Text('Sign Out'),
-            ),
-          ],
-        ),
+              );
+            },
+          );
+        },
+        // Column widget arranges its children in a vertical line
       ),
     );
   }
@@ -194,3 +256,8 @@ class ProfileScreen extends StatelessWidget {
             "https://static.generated.photos/vue-static/face-generator/landing/wall/7.jpg"),
       );
 }
+  
+  // Widget createContainerForClasses(courses) => Column(
+  //   for (final course in courses) {
+  //     print(course)
+  //   } 

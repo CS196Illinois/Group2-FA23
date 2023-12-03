@@ -47,43 +47,35 @@ class _HomeScreenState extends State<HomeScreenContent> {
         final items = snapshot.data!;
         //print(items);
         return ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: MediaQuery.of(context).size.height,
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ItemWidget(text: item['name']),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            });
+          itemCount: items.length,
+          itemExtent: 100,
+          itemBuilder: (context, index) {
+            final item = items[index];
+            return Center(
+              child: ItemWidget(userData: item),
+            );
+          },
+        );
       },
     );
   }
 }
 
 class ItemWidget extends StatelessWidget {
-  final String text;
+  final userData;
+  User? user = Supabase.instance.client.auth.currentUser;
 
   ItemWidget({
     Key? key,
-    required this.text,
+    required this.userData,
     //required line
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      //margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      margin: EdgeInsets.all(1.0),
       child: SizedBox(
         height: 80,
         width: 550,
@@ -93,8 +85,8 @@ class ItemWidget extends StatelessWidget {
               padding: const EdgeInsets.only(left: 10),
               child: CircularWidget(),
             ),
-            SizedBox(width: 20),
-            Text(text),
+            const SizedBox(width: 20),
+            Text(userData['name']),
             Spacer(),
             Padding(
               padding: const EdgeInsets.only(right: 10),
@@ -104,20 +96,23 @@ class ItemWidget extends StatelessWidget {
                   LeftSmallCircle(),
                   InkWell(
                     onTap: () async {
-                      final data = await supabase
+                      final data = await Supabase.instance.client
                           .from('users')
                           .select('matches')
                           .eq('email', user?.email);
-                      List<dynamic> user_matches = data[0]['matches'];
-                      print('Here is match: ${user_matches}');
-                      user_matches.add(item['email']);
-                      await supabase
-                          .from('users')
-                          .update({'matches': user_matches}).match(
-                              {'email': user?.email});
-                      print('Here is matches: ${user_matches}');
-
-                      print('Favorite Icon Clicked');
+                      List<dynamic> user_matches = [];
+                      if (data[0]['matches'] != null) {
+                        user_matches = data[0]['matches'];
+                      }
+                      print('Here are previous matches: ${user_matches}');
+                      if (!(user_matches.contains(userData['email']))) {
+                        user_matches.add(userData['email']);
+                        await Supabase.instance.client
+                            .from('users')
+                            .update({'matches': user_matches}).match(
+                                {'email': user?.email});
+                        print('Here are current matches: ${user_matches}');
+                      }
                     },
                     child: Icon(
                       Icons.favorite,

@@ -130,8 +130,34 @@ class ItemWidget extends StatelessWidget {
                 children: [
                   RightSmallCircle(),
                   InkWell(
-                    onTap: () {
-                      print('Cancel Icon Clicked');
+                    onTap: () async {
+                      final data = await Supabase.instance.client
+                          .from('users')
+                          .select('matches')
+                          .eq('email', user?.email);
+                      List<dynamic> user_matches = [];
+                      if (data[0]['matches'] != null) {
+                        user_matches = data[0]['matches'];
+                      }
+                      print('Here are previous matches: ${user_matches}');
+                      if (user_matches.contains(userData['email'])) {
+                        user_matches.remove(userData['email']);
+                        await Supabase.instance.client
+                            .from('users')
+                            .update({'matches': user_matches}).match(
+                                {'email': user?.email});
+                        if (user_matches.length == 0) {
+                          print("You currently have no matches");
+                        } else {
+                          print('Here are current matches: ${user_matches}');
+                        }
+                      } else {
+                        if (user_matches.length == 0) {
+                          print("You currently have no matches");
+                        }
+                        print(
+                            "Cannot remove user who is not already part of your matches");
+                      }
                     },
                     child: Icon(
                       Icons.cancel,

@@ -78,6 +78,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
           // If the stream completes with data, get the courses the user is enrolled in and then display them
           final userData = snapshot.data!;
           final courses = userData[0]['courses']; // gets the users's courses
+          final groups = userData[0]['groups']; // gets the user's groups
           return ListView.builder(
             // how many courses the user is enrolled in
             itemCount: courses.length,
@@ -85,7 +86,8 @@ class _GroupsScreenState extends State<GroupsScreen> {
             itemBuilder: (context, index) {
               final course = courses[index];
               // Fetch data to fetch the stream of data for that course.
-              return CourseCard(courseStream: fetchCourseData(course));
+              return CourseCard(
+                  courseStream: fetchCourseData(course), user_groups: groups);
             },
           );
         },
@@ -99,7 +101,10 @@ class _GroupsScreenState extends State<GroupsScreen> {
 class CourseCard extends StatefulWidget {
   // parameters that will be passed in from the GroupScreenState
   final Stream<List<Map<String, dynamic>>> courseStream;
-  const CourseCard({Key? key, required this.courseStream}) : super(key: key);
+  final user_groups;
+  const CourseCard(
+      {Key? key, required this.courseStream, required this.user_groups})
+      : super(key: key);
 
   @override
   // Although I should not be passing logic through this I am doing this as a workaround for passing coursestream.. if anyone finds a better solutions please update this!!
@@ -159,6 +164,7 @@ class _CourseCardState extends State<CourseCard> {
                                     courseName: course['course_name'],
                                     courseID: course['course_ID'],
                                     users: course['users'],
+                                    user_groups: widget.user_groups,
                                     current_user_email: user?.email as String);
                               },
                             )
@@ -175,6 +181,7 @@ class _CourseCardState extends State<CourseCard> {
                                     courseName: course['course_name'],
                                     courseID: course['course_ID'],
                                     users: course['users'],
+                                    user_groups: widget.user_groups,
                                     current_user_email: user?.email as String);
                               },
                             )
@@ -256,11 +263,13 @@ class JoinedPopUp extends StatelessWidget {
   final String courseName;
   final int courseID;
   final List<dynamic> users;
+  final List<dynamic> user_groups;
   final String current_user_email;
   JoinedPopUp(
       {required this.courseName,
       required this.courseID,
       required this.users,
+      required this.user_groups,
       required this.current_user_email});
 
   @override
@@ -284,9 +293,14 @@ class JoinedPopUp extends StatelessWidget {
               onPressed: () async {
                 print(users);
                 users.remove(current_user_email);
+                user_groups.remove(courseID);
                 await Supabase.instance.client
                     .from('courses')
                     .update({'users': users}).match({'course_ID': courseID});
+                await Supabase.instance.client
+                    .from('users')
+                    .update({'groups': user_groups}).match(
+                        {'email': current_user_email});
                 Navigator.pop(context);
               },
               child: const Text('Leave'),
@@ -302,12 +316,14 @@ class JoinPopUp extends StatelessWidget {
   final String courseName;
   final int courseID;
   final List<dynamic> users;
+  final List<dynamic> user_groups;
   final String current_user_email;
 
   JoinPopUp(
       {required this.courseName,
       required this.courseID,
       required this.users,
+      required this.user_groups,
       required this.current_user_email});
 
   @override
@@ -330,9 +346,14 @@ class JoinPopUp extends StatelessWidget {
             TextButton(
               onPressed: () async {
                 users.add(current_user_email);
+                user_groups.add(courseID);
                 await Supabase.instance.client
                     .from('courses')
                     .update({'users': users}).match({'course_ID': courseID});
+                await Supabase.instance.client
+                    .from('users')
+                    .update({'groups': user_groups}).match(
+                        {'email': current_user_email});
                 Navigator.pop(context);
               },
               child: const Text('Join'),

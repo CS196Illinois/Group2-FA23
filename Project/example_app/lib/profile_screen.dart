@@ -60,9 +60,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (data['users'] != null && data['users'].contains(user?.email)) {
           user_groups.add(data['course_name']);
         }
-        // else {
-        //   user_groups.add("No groups");
-        // }
+        else {
+          user_groups.add("No groups");
+        }
       });
     }
   }

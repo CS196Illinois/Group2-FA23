@@ -80,7 +80,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   'major': major,
                   'bio': bio,
                   'courses': formattedCourses,
-                  'matches': null,
+                  'matches': [],
+                  'groups': [],
                   'created_at': response.user?.createdAt,
                 });
 

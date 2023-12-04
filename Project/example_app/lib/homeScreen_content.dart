@@ -11,15 +11,18 @@ class HomeScreenContent extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreenContent> {
   late final Stream<List<Map<String, dynamic>>> _stream;
+  User? user = Supabase.instance.client.auth.currentUser;
+
   @override
   void initState() {
     super.initState();
     // Fetching data from the 'items' table in the Supabase database when the widget is initialized
     // _future = Supabase.instance.client.from('items').select().then((response) {
-    User? user = Supabase.instance.client.auth.currentUser;
-    _stream = Supabase.instance.client.from('users').stream(primaryKey: [
-      'email'
-    ]).map((maps) => List<Map<String, dynamic>>.from(maps));
+    _stream = Supabase.instance.client
+        .from('users')
+        .stream(primaryKey: ['email'])
+        .neq('email', user?.email)
+        .map((maps) => List<Map<String, dynamic>>.from(maps));
     // then((response) {
     //   if (response == null) {
     //     // If there is an error fetching the data, print the error and return an empty list
@@ -52,7 +55,10 @@ class _HomeScreenState extends State<HomeScreenContent> {
           itemBuilder: (context, index) {
             final item = items[index];
             return Center(
-              child: ItemWidget(userData: item),
+              child: ItemWidget(
+                userData: item,
+                current_user_email: user?.email,
+              ),
             );
           },
         );
@@ -63,13 +69,12 @@ class _HomeScreenState extends State<HomeScreenContent> {
 
 class ItemWidget extends StatelessWidget {
   final userData;
-  User? user = Supabase.instance.client.auth.currentUser;
+  final current_user_email;
 
-  ItemWidget({
-    Key? key,
-    required this.userData,
-    //required line
-  }) : super(key: key);
+  ItemWidget({Key? key, required this.userData, required this.current_user_email
+      //required line
+      })
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -99,22 +104,22 @@ class ItemWidget extends StatelessWidget {
                       final data = await Supabase.instance.client
                           .from('users')
                           .select('matches')
-                          .eq('email', user?.email);
+                          .eq('email', current_user_email);
                       List<dynamic> user_matches = [];
                       if (data[0]['matches'] != null) {
                         user_matches = data[0]['matches'];
                       }
-                      print('Here are previous matches: ${user_matches}');
+                      // print('Here are previous matches: ${user_matches}');
                       if (!(user_matches.contains(userData['email']))) {
                         user_matches.add(userData['email']);
                         await Supabase.instance.client
                             .from('users')
                             .update({'matches': user_matches}).match(
-                                {'email': user?.email});
-                        print('Here are current matches: ${user_matches}');
+                                {'email': current_user_email});
+                        // print('Here are current matches: ${user_matches}');
                       }
                     },
-                    child: Icon(
+                    child: const Icon(
                       Icons.favorite,
                       color: Colors.red,
                       size: 20,
@@ -134,7 +139,7 @@ class ItemWidget extends StatelessWidget {
                       final data = await Supabase.instance.client
                           .from('users')
                           .select('matches')
-                          .eq('email', user?.email);
+                          .eq('email', current_user_email);
                       List<dynamic> user_matches = [];
                       if (data[0]['matches'] != null) {
                         user_matches = data[0]['matches'];
@@ -145,7 +150,7 @@ class ItemWidget extends StatelessWidget {
                         await Supabase.instance.client
                             .from('users')
                             .update({'matches': user_matches}).match(
-                                {'email': user?.email});
+                                {'email': current_user_email});
                         if (user_matches.length == 0) {
                           print("You currently have no matches");
                         } else {

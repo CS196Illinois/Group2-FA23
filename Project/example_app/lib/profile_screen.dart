@@ -48,20 +48,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void fetchCourses(final groups) async {
+    // adding a check if groups is empty, then we just need to return "No groups"
+    if (groups.isEmpty) {
+      user_groups.add("You are not in any groups!");
+      return;
+    }
     for (int group in groups) {
       final data = await Supabase.instance.client
           .from('courses')
           .select('course_name, users')
           .eq('course_ID', group)
           .single();
-      print("hi: ${data['users']}");
       // print(data['users'].contains[user?.email));
       setState(() {
-        if (data['users'] != null && data['users'].contains(user?.email)) {
+        // print(
+        //     "Here is the users of the course ${data['course_name']}: ${data['users']}");
+        if (data['users'].length != 0 && data['users'].contains(user?.email)) {
           user_groups.add(data['course_name']);
-        }
-        else {
-          user_groups.add("No groups");
         }
       });
     }
@@ -99,18 +102,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // Builder callback to create a ListTile widget for each item in the list
             itemBuilder: (context, index) {
               final item = items[index];
-              print(item['name']);
-              print(item['email']);
-              print(item['major']);
-              print(item['bio']);
-              print(item['courses']);
-              print(item['groups']);
-              print(item['matches']);
+              // print(item['name']);
+              // print(item['email']);
+              // print(item['major']);
+              // print(item['bio']);
+              // print(item['courses']);
+              // print(item['groups']);
+              // print(item['matches']);
               if (!hasFetched) {
                 fetchCourses(item['groups']);
                 hasFetched = true;
               }
-
+              List<dynamic> display_matches = [];
+              if (item['matches'].isEmpty) {
+                display_matches.add("No Matches! Go Match with other people!");
+              } else {
+                display_matches = item['matches'];
+              }
               // print(item[]);
               return Center(
                 // Display the name of the item
@@ -216,7 +224,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: item['matches'].map<Widget>((match) {
+                      children: display_matches.map<Widget>((match) {
                         return Container(
                           margin: const EdgeInsets.all(5),
                           color:

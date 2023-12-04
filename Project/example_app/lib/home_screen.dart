@@ -28,6 +28,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   // Stream for displaying the list of items from the Supabase database
   late final Stream<List<Map<String, dynamic>>> _stream;
+  User? user = Supabase.instance.client.auth.currentUser;
   // index for selecting which screen the user is currently viewing
   int _selectedScrennIndex =
       1; // set to 1 because in our list below, we have the homeScreen in the list[1] position so we want to display the home screen first after user logs in
@@ -35,10 +36,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Initializing the stream to fetch data from the 'items' table in the Supabase database
-    _stream = Supabase.instance.client.from('items').stream(primaryKey: [
-      'id'
-    ]).map((maps) => List<Map<String, dynamic>>.from(maps));
+    // Initializing the stream to fetch data from the 'users' table in the Supabase database
+    _stream = Supabase.instance.client
+        .from('users')
+        .stream(primaryKey: ['email'])
+        .eq("email", user?.email)
+        .limit(1)
+        .map((maps) => List<Map<String, dynamic>>.from(maps));
   }
 
   // Function to handle item taps on the BottomNavigationBar
@@ -55,7 +59,8 @@ class _HomeScreenState extends State<HomeScreen> {
     // adding more screens would mean you just create a new `new_screen.dart` file and then add it to this list after importing at the top
     List<Widget> widgetOptions = <Widget>[
       const ProfileScreen(),
-      HomeScreenContent(stream: _stream), // ensuring we pass in a stream
+      HomeScreenContent(
+          current_user_stream: _stream), // ensuring we pass in a stream
       const GroupsScreen(),
       // another screen if necessary
     ];

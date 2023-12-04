@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class HomeScreenContent extends StatefulWidget {
-  final Stream<List<Map<String, dynamic>>> stream;
+  final Stream<List<Map<String, dynamic>>> current_user_stream;
 
-  const HomeScreenContent({Key? key, required this.stream}) : super(key: key);
+  const HomeScreenContent({Key? key, required this.current_user_stream})
+      : super(key: key);
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -16,24 +17,11 @@ class _HomeScreenState extends State<HomeScreenContent> {
   @override
   void initState() {
     super.initState();
-    // Fetching data from the 'items' table in the Supabase database when the widget is initialized
-    // _future = Supabase.instance.client.from('items').select().then((response) {
     _stream = Supabase.instance.client
         .from('users')
         .stream(primaryKey: ['email'])
-        .neq('email', user?.email)
+        .neq('email', user?.email) // not equal to current user
         .map((maps) => List<Map<String, dynamic>>.from(maps));
-    // then((response) {
-    //   if (response == null) {
-    //     // If there is an error fetching the data, print the error and return an empty list
-    //     print('Error fetching items: ${response.error}');
-    //     return [];
-    //   } else {
-    //     // If the data is fetched successfully, return the list of items
-    //     return List<Map<String, dynamic>>.from(
-    //         response); // casting response into the List<Map<String, dynamic>> type
-    //   }
-    // });
   }
 
   @override
@@ -47,16 +35,16 @@ class _HomeScreenState extends State<HomeScreenContent> {
         if (snapshot.data!.isEmpty) {
           return const Center(child: Text('No items found'));
         }
-        final items = snapshot.data!;
+        final users = snapshot.data!;
         //print(items);
         return ListView.builder(
-          itemCount: items.length,
+          itemCount: users.length,
           itemExtent: 100,
           itemBuilder: (context, index) {
-            final item = items[index];
+            final one_user = users[index];
             return Center(
               child: ItemWidget(
-                userData: item,
+                cardUserData: one_user,
                 current_user_email: user?.email,
               ),
             );
@@ -68,55 +56,66 @@ class _HomeScreenState extends State<HomeScreenContent> {
 }
 
 class ItemWidget extends StatelessWidget {
-  final userData;
+  final cardUserData;
   final current_user_email;
-
-  ItemWidget({Key? key, required this.userData, required this.current_user_email
-      //required line
-      })
+  const ItemWidget(
+      {Key? key, required this.cardUserData, required this.current_user_email})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Card(
       //margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      margin: EdgeInsets.all(1.0),
+      margin: const EdgeInsets.all(1.0),
       child: SizedBox(
         height: 80,
         width: 550,
         child: Row(
           children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 10),
+            const Padding(
+              padding: EdgeInsets.only(left: 10),
               child: CircularWidget(),
             ),
             const SizedBox(width: 20),
-            Text(userData['name']),
-            Spacer(),
+            Text(cardUserData['name']),
+            const Spacer(),
             Padding(
               padding: const EdgeInsets.only(right: 10),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  LeftSmallCircle(),
+                  const LeftSmallCircle(),
                   InkWell(
                     onTap: () async {
-                      final data = await Supabase.instance.client
+                      print(
+                          "Here is ${cardUserData['name']}'s matches ${cardUserData['matches']}");
+                      List<dynamic> card_user_matches = cardUserData['matches'];
+                      final current_user_match_res = await Supabase
+                          .instance.client
                           .from('users')
                           .select('matches')
-                          .eq('email', current_user_email);
-                      List<dynamic> user_matches = [];
-                      if (data[0]['matches'] != null) {
-                        user_matches = data[0]['matches'];
-                      }
-                      // print('Here are previous matches: ${user_matches}');
-                      if (!(user_matches.contains(userData['email']))) {
-                        user_matches.add(userData['email']);
+                          .eq('email', current_user_email)
+                          .single();
+                      List<dynamic> current_user_matches =
+                          current_user_match_res['matches'];
+                      // print('Here are previous matches: ${card_user_matches}');
+                      if (!(current_user_matches
+                          .contains(cardUserData['email']))) {
+                        // add to current user's matches array
+                        current_user_matches.add(cardUserData['email']);
+                        // also add to that specific card user's matches as well
+                        card_user_matches.add(current_user_email);
+                        // update current user's matches
                         await Supabase.instance.client
                             .from('users')
-                            .update({'matches': user_matches}).match(
+                            .update({'matches': current_user_matches}).match(
                                 {'email': current_user_email});
-                        // print('Here are current matches: ${user_matches}');
+                        // update the card user's matches
+                        await Supabase.instance.client
+                            .from('users')
+                            .update({'matches': card_user_matches}).match(
+                                {'email': cardUserData['email']});
+                        // print('Here are current matches: ${card_user_matches}');
                       }
                     },
                     child: const Icon(
@@ -133,38 +132,45 @@ class ItemWidget extends StatelessWidget {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  RightSmallCircle(),
+                  const RightSmallCircle(),
                   InkWell(
                     onTap: () async {
-                      final data = await Supabase.instance.client
+                      print(
+                          "Here are ${cardUserData['name']}'s previous matches ${cardUserData['matches']}");
+                      List<dynamic> card_user_matches = cardUserData['matches'];
+                      final current_user_match_res = await Supabase
+                          .instance.client
                           .from('users')
                           .select('matches')
-                          .eq('email', current_user_email);
-                      List<dynamic> user_matches = [];
-                      if (data[0]['matches'] != null) {
-                        user_matches = data[0]['matches'];
-                      }
-                      print('Here are previous matches: ${user_matches}');
-                      if (user_matches.contains(userData['email'])) {
-                        user_matches.remove(userData['email']);
-                        await Supabase.instance.client
-                            .from('users')
-                            .update({'matches': user_matches}).match(
-                                {'email': current_user_email});
-                        if (user_matches.length == 0) {
-                          print("You currently have no matches");
-                        } else {
-                          print('Here are current matches: ${user_matches}');
-                        }
-                      } else {
-                        if (user_matches.length == 0) {
-                          print("You currently have no matches");
-                        }
+                          .eq('email', current_user_email)
+                          .single();
+                      List<dynamic> current_user_matches =
+                          current_user_match_res['matches'];
+                      // since .remove has no effect if value wasn't in list, we can just remove directly without checking 
+                      // if it contains or not. however, to still print a message, we can base it 
+                      // off of what remove() returns which is:
+                      //    true if value was in the list, false otherwise
+
+                      // remove current user email from the card user
+                      if (!card_user_matches.remove(current_user_email)) {
+                        // enters in here if current_user_email was never a match of card user
                         print(
-                            "Cannot remove user who is not already part of your matches");
+                            "Cannot remove user who is not already part of your matches!");
                       }
+                      // remove card user email from the current user
+                      current_user_matches.remove(cardUserData['email']);
+                      // update current user's matches
+                      await Supabase.instance.client
+                          .from('users')
+                          .update({'matches': current_user_matches}).match(
+                              {'email': current_user_email});
+                      // update the card user's matches
+                      await Supabase.instance.client
+                          .from('users')
+                          .update({'matches': card_user_matches}).match(
+                              {'email': cardUserData['email']});
                     },
-                    child: Icon(
+                    child: const Icon(
                       Icons.cancel,
                       color: Color.fromARGB(255, 0, 42, 66),
                       size: 20,
@@ -181,83 +187,46 @@ class ItemWidget extends StatelessWidget {
 }
 
 class CircularWidget extends StatelessWidget {
+  const CircularWidget({super.key});
   @override
   Widget build(BuildContext context) {
     return Container(
       width: 75,
       height: 75,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         shape: BoxShape.circle,
-        color: const Color.fromARGB(255, 123, 121, 121),
+        color: Color.fromARGB(255, 123, 121, 121),
       ),
     );
   }
 }
 
 class RightSmallCircle extends StatelessWidget {
+  const RightSmallCircle({super.key});
   @override
   Widget build(BuildContext context) {
     return Container(
       width: 40,
       height: 40,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         shape: BoxShape.circle,
-        color: const Color.fromARGB(255, 123, 121, 121),
+        color: Color.fromARGB(255, 123, 121, 121),
       ),
     );
   }
 }
 
 class LeftSmallCircle extends StatelessWidget {
+  const LeftSmallCircle({super.key});
   @override
   Widget build(BuildContext context) {
     return Container(
       width: 40,
       height: 40,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         shape: BoxShape.circle,
-        color: const Color.fromARGB(255, 123, 121, 121),
+        color: Color.fromARGB(255, 123, 121, 121),
       ),
     );
   }
 }
-
-// void main() {
-//   runApp(const MyApp());
-// }
-
-// class MyApp extends StatelessWidget {
-//   const MyApp({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       title: 'Flutter Demo',
-//       theme: ThemeData(
-//         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-//         useMaterial3: true,
-//       ),
-//       home: const _MyHomePage(title: 'App Name + Logo'),
-//     );
-//   }
-// }
-
-// class _MyHomePage extends StatefulWidget {
-//   final String title;
-
-//   const _MyHomePage({super.key, required this.title});
-
-//   @override
-// }
-
-// class _MyHomePageState  {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-//         title: Text(widget.title),
-//       ),
-//     );
-//   }
-// }

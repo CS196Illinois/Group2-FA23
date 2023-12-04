@@ -47,9 +47,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         .map((maps) => List<Map<String, dynamic>>.from(maps));
   }
 
-  bool hasPrinted = false;
-  bool no = false;
-
   void fetchCourses(final groups) async {
     for (int group in groups) {
       final data = await Supabase.instance.client
@@ -61,20 +58,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // print(data['users'].contains[user?.email));
       setState(() {
         if (data['users'] != null && data['users'].contains(user?.email)) {
-          if (!no) {
-            user_groups.add(data['course_name']);
-            no = true;
-          }
-        } else {
-          if (!hasPrinted) {
-            user_groups.add("No groups");
-            hasPrinted = true;
-          }
+          user_groups.add(data['course_name']);
         }
+        // else {
+        //   user_groups.add("No groups");
+        // }
       });
     }
   }
 
+  bool hasFetched = false;
   @override
   Widget build(BuildContext context) {
     // Fetching the current user from Supabase
@@ -113,7 +106,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               print(item['courses']);
               print(item['groups']);
               print(item['matches']);
-              fetchCourses(item['groups']);
+              if (!hasFetched) {
+                fetchCourses(item['groups']);
+                hasFetched = true;
+              }
 
               // print(item[]);
               return Center(
@@ -198,21 +194,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: user_groups.map<Widget>((course) {
-                        return Container(
-                          margin: const EdgeInsets.all(5),
-                          color:
-                              Colors.grey[200], // You can customize this color
-                          child: Text(
-                            course, // Assuming 'course' is a String
-                            style: const TextStyle(fontSize: 13),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    /*Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: item['groups'].map<Widget>((group) {
+                      children: user_groups.map<Widget>((group) {
                         return Container(
                           margin: const EdgeInsets.all(5),
                           color:
@@ -223,28 +205,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         );
                       }).toList(),
-                    ), */
-                    /*const Padding(
-                      padding: EdgeInsets.only(top: 3.0),
-                      child: Text(
-                        'Calculus II Study Group',
-                        style: TextStyle(fontSize: 13),
-                      ),
                     ),
-                    const Padding(
-                      padding: EdgeInsets.only(top: 3.0),
-                      child: Text(
-                        'CS 124 Study Group',
-                        style: TextStyle(fontSize: 13),
-                      ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.only(top: 3.0),
-                      child: Text(
-                        'RHET 105 Group',
-                        style: TextStyle(fontSize: 13),
-                      ),
-                    ), */
                     const Padding(
                       padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
                       child: Text(
@@ -252,6 +213,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         style: TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 18),
                       ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: item['matches'].map<Widget>((match) {
+                        return Container(
+                          margin: const EdgeInsets.all(5),
+                          color:
+                              Colors.grey[200], // You can customize this color
+                          child: Text(
+                            match, // Assuming 'course' is a String
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        );
+                      }).toList(),
                     ),
                     // Displaying the user's email
                     Text('Email: ${user?.email}'),

@@ -31,18 +31,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final double profileHeight = 80;
 
   late final Stream<List<Map<String, dynamic>>> _stream;
+  List<String> user_groups = [];
+
+  User? user = Supabase.instance.client.auth.currentUser;
 
   @override
   void initState() {
     super.initState();
     // Fetching data from the 'items' table in the Supabase database when the widget is initialized
-    User? user = Supabase.instance.client.auth.currentUser;
     _stream = Supabase.instance.client
         .from('users')
         .stream(primaryKey: ['email'])
         .eq('email', user?.email)
         .limit(1)
         .map((maps) => List<Map<String, dynamic>>.from(maps));
+  }
+
+  bool hasPrinted = false;
+  bool no = false;
+
+  void fetchCourses(final groups) async {
+    for (int group in groups) {
+      final data = await Supabase.instance.client
+          .from('courses')
+          .select('course_name, users')
+          .eq('course_ID', group)
+          .single();
+      print("hi: ${data['users']}");
+      // print(data['users'].contains[user?.email));
+      setState(() {
+        if (data['users'] != null && data['users'].contains(user?.email)) {
+          if (!no) {
+            user_groups.add(data['course_name']);
+            no = true;
+          }
+        } else {
+          if (!hasPrinted) {
+            user_groups.add("No groups");
+            hasPrinted = true;
+          }
+        }
+      });
+    }
   }
 
   @override
@@ -83,6 +113,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               print(item['courses']);
               print(item['groups']);
               print(item['matches']);
+              fetchCourses(item['groups']);
 
               // print(item[]);
               return Center(
@@ -130,7 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         child: Text(
                           item['bio'],
-                          style: const TextStyle(fontSize: 12),
+                          style: const TextStyle(fontSize: 14),
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -143,38 +174,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             fontWeight: FontWeight.bold, fontSize: 18),
                       ),
                     ),
-                    // createContainerForClasses(item['courses']),
-                    Container(
-                      margin: const EdgeInsets.all(5),
-                      color: const Color.fromARGB(255, 232, 180, 176),
-                      child: const Text(
-                        'Computer Science Orientation (CS 100)',
-                        style: TextStyle(fontSize: 13),
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.all(5),
-                      color: const Color.fromARGB(255, 190, 236, 237),
-                      child: const Text(
-                        'Writing and Research (RHET 105)',
-                        style: TextStyle(fontSize: 13),
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.all(5),
-                      color: const Color.fromARGB(255, 187, 176, 232),
-                      child: const Text(
-                        'Calculus II (Math 231)',
-                        style: TextStyle(fontSize: 13),
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.all(5),
-                      color: const Color.fromARGB(255, 181, 232, 176),
-                      child: const Text(
-                        'Intro to Computer Science (CS 124)',
-                        style: TextStyle(fontSize: 13),
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: item['courses'].map<Widget>((course) {
+                        return Container(
+                          margin: const EdgeInsets.all(5),
+                          color:
+                              Colors.grey[200], // You can customize this color
+                          child: Text(
+                            course, // Assuming 'course' is a String
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        );
+                      }).toList(),
                     ),
                     const Padding(
                       padding: EdgeInsets.only(top: 10.0),
@@ -184,7 +196,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             fontWeight: FontWeight.bold, fontSize: 18),
                       ),
                     ),
-                    const Padding(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: user_groups.map<Widget>((course) {
+                        return Container(
+                          margin: const EdgeInsets.all(5),
+                          color:
+                              Colors.grey[200], // You can customize this color
+                          child: Text(
+                            course, // Assuming 'course' is a String
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    /*Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: item['groups'].map<Widget>((group) {
+                        return Container(
+                          margin: const EdgeInsets.all(5),
+                          color:
+                              Colors.grey[200], // You can customize this color
+                          child: Text(
+                            group, // Assuming 'course' is a String
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        );
+                      }).toList(),
+                    ), */
+                    /*const Padding(
                       padding: EdgeInsets.only(top: 3.0),
                       child: Text(
                         'Calculus II Study Group',
@@ -204,7 +244,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         'RHET 105 Group',
                         style: TextStyle(fontSize: 13),
                       ),
-                    ),
+                    ), */
                     const Padding(
                       padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
                       child: Text(
@@ -256,8 +296,77 @@ class _ProfileScreenState extends State<ProfileScreen> {
             "https://static.generated.photos/vue-static/face-generator/landing/wall/7.jpg"),
       );
 }
-  
-  // Widget createContainerForClasses(courses) => Column(
-  //   for (final course in courses) {
-  //     print(course)
-  //   } 
+
+// class ProfileCard extends StatefulWidget {
+//   final Stream<List name;
+//   final String major;
+//   final String bio;
+
+//   const Section1({Key? key, required this.name, required this.major, required this.bio}) : super(key: key);
+
+//   @override
+//   _Section1State createState() => _Section1State();
+// }
+
+// class _Section1State extends State<ProfileScreen> {
+//   void initState() {
+//     super.initState();
+//   }
+//   Widget build (BuildContext context) {
+//     Column(
+//                   // Aligning children to the center of the main axis
+//                   mainAxisAlignment: MainAxisAlignment.center,
+//                   children: [
+//                     Stack(
+//                         clipBehavior: Clip.none,
+//                         alignment: Alignment.center,
+//                         children: [
+//                           buildCoverImage(),
+//                           Positioned(
+//                             top: 10,
+//                             child: buildProfileImage(),
+//                           )
+//                         ]),
+//                     Container(
+//                       padding: const EdgeInsets.only(bottom: 8),
+//                       child: Center(
+//                         child: Text(
+//                           item['name'],
+//                           style: const TextStyle(
+//                               fontWeight: FontWeight.bold, fontSize: 30),
+//                         ),
+//                       ),
+//                     ),
+
+//                     Center(
+//                       child: Text(
+//                         item['major'],
+//                         style: TextStyle(color: Colors.grey[800], fontSize: 16),
+//                       ),
+//                     ),
+//                     Center(
+//                       child: Padding(
+//                         padding: const EdgeInsets.only(
+//                           top: 10.0,
+//                           left: 5.0,
+//                           right: 5.0,
+//                         ),
+//                         child: Text(
+//                           item['bio'],
+//                           style: const TextStyle(fontSize: 12),
+//                           textAlign: TextAlign.center,
+//                         ),
+//                       ),
+//                     ),
+//                     const Padding(
+//                       padding: EdgeInsets.only(top: 10.0),
+//                       child: Text(
+//                         'Classes',
+//                         style: TextStyle(
+//                             fontWeight: FontWeight.bold, fontSize: 18),
+//                       ),
+//                     ),
+//                   ]
+//     );
+//   }
+// }

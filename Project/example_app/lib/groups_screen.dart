@@ -229,7 +229,8 @@ class GroupCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var course = courseData['courseconcat'];
-    var courseSection = courseData['course_section'];
+    var courseSection = courseData['course_section'] ??
+        "N/A"; // if course_section is NULL, then display N/A
     return Card(
       elevation: 3,
       margin: const EdgeInsets.all(10),

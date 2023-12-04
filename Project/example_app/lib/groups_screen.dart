@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /**
  * The `GroupsScreen` widget is defined as a `StatefulWidget` because it manages mutable state within itself, specifically the state of the future `_future` that holds the data fetched from the Supabase database.
@@ -25,32 +26,32 @@ class GroupsScreen extends StatefulWidget {
   _GroupsScreenState createState() => _GroupsScreenState();
 }
 
+Stream<List<Map<String, dynamic>>> fetchCourseData(String courseName) {
+  // late final Stream<List<Map<String, dynamic>>> _stream;
+  return Supabase.instance.client
+      .from('courses')
+      .stream(primaryKey: ['course_ID'])
+      .eq('courseconcat', courseName)
+      .limit(1)
+      .map((maps) => List<Map<String, dynamic>>.from(maps));
+  // return _stream;
+}
+
 class _GroupsScreenState extends State<GroupsScreen> {
-  // A Future that holds a list of maps, each map representing an item fetched from the database
-  // late final Future<List<Map<String, dynamic>>> _future;
   late final Stream<List<Map<String, dynamic>>> _stream;
+  final supabase = Supabase.instance.client;
+  User? user = Supabase.instance.client.auth.currentUser;
 
   @override
   void initState() {
     super.initState();
-    // Fetching data from the 'items' table in the Supabase database when the widget is initialized
-    // _future = Supabase.instance.client.from('items').select().then((response) {
-    User? user = Supabase.instance.client.auth.currentUser;
-    _stream = Supabase.instance.client.from('users').stream(primaryKey: [
-      'email'
-    ]).eq('email', user?.email).limit(1).map((maps) => List<Map<String, dynamic>>.from(maps));
-    _stream.map((maps) => print(List<Map<String, dynamic>>.from(maps)));
-    // then((response) {
-    //   if (response == null) {
-    //     // If there is an error fetching the data, print the error and return an empty list
-    //     print('Error fetching items: ${response.error}');
-    //     return [];
-    //   } else {
-    //     // If the data is fetched successfully, return the list of items
-    //     return List<Map<String, dynamic>>.from(
-    //         response); // casting response into the List<Map<String, dynamic>> type
-    //   }
-    // });
+    // Fetch all the data of the user using streams
+    _stream = supabase
+        .from('users')
+        .stream(primaryKey: ['email'])
+        .eq('email', user?.email)
+        .limit(1)
+        .map((maps) => List<Map<String, dynamic>>.from(maps));
   }
 
   @override
@@ -63,34 +64,281 @@ class _GroupsScreenState extends State<GroupsScreen> {
       ),
       // FutureBuilder widget rebuilds its part of the widget tree based on the latest snapshot of the future
       body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: _stream, // The future to observe
+        stream: _stream, // The stream to observe
         // The builder callback that returns a widget based on the latest snapshot
         builder: (context, snapshot) {
           // If the future is still running, show a loading indicator
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          // If the future completes with no data, show a message indicating no items were found
+          // If the stream completes with no data, show a message indicating no items were found
           if (snapshot.data!.isEmpty) {
             return const Center(child: Text('No items found'));
           }
-          // If the future completes with data, display the list of items
-          final items = snapshot.data!;
+          // If the stream completes with data, get the courses the user is enrolled in and then display them
+          final userData = snapshot.data!;
+          final courses = userData[0]['courses']; // gets the users's courses
           return ListView.builder(
-            // The number of items in the list
-            itemCount: items.length,
-            // Builder callback to create a ListTile widget for each item in the list
+            // how many courses the user is enrolled in
+            itemCount: courses.length,
+            // Builder callback to create a CourseCard which has the dismissible widegt wrapped around course info.
             itemBuilder: (context, index) {
-              final item = items[index];
-              return ListTile(
-                // Display the name of the item
-                title: Text(item['name']),
-                // Display the image URL of the item
-                subtitle: Text(item['email']),
-              );
+              final course = courses[index];
+              // Fetch data to fetch the stream of data for that course.
+              return CourseCard(courseStream: fetchCourseData(course));
             },
           );
         },
+      ),
+    );
+  }
+}
+
+// The coursecard is a stateful widegt because I want the card to reload after each dismissible action to prevent it from disapearing
+// This allows the user to interact with the group screen without having to manually reload the screen.
+class CourseCard extends StatefulWidget {
+  // parameters that will be passed in from the GroupScreenState
+  final Stream<List<Map<String, dynamic>>> courseStream;
+  const CourseCard({Key? key, required this.courseStream}) : super(key: key);
+
+  @override
+  // Although I should not be passing logic through this I am doing this as a workaround for passing coursestream.. if anyone finds a better solutions please update this!!
+  _CourseCardState createState() => _CourseCardState();
+}
+
+class _CourseCardState extends State<CourseCard> {
+  User? user = Supabase.instance.client.auth.currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<Map<String, dynamic>>>(
+        stream: widget.courseStream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.data!.isEmpty) {
+            return const Center(child: Text('No items found'));
+          }
+          // need to add null check here
+          if (snapshot.data!.isEmpty) {
+            return const GroupCard(
+                courseData: {"course_name": "Course Not Found"});
+          }
+          // COURSE DATA if snapshot is not empty!!
+          final courseData = snapshot.data!;
+          final course = courseData[0];
+          // get the course explorer link -- can be done more efficiently.
+          // return the dismissible widget.
+          return Dismissible(
+              key: UniqueKey(),
+              direction: DismissDirection.horizontal,
+              onDismissed: (direction) => {
+                    if (direction == DismissDirection.endToStart)
+                      {
+                        // grab URL and launch it
+                        launchUrl(Uri.parse(course['course_explorer_link'])),
+                      }
+                    else
+                      {
+                        // if course group doesn't contain user, then add a Join Popup
+                        if (!(course['users'].contains(user?.email)))
+                          {
+                            print(
+                                "This is a course that the user would like to join!"),
+                            // render the dialog box JoinPopUp
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext dialogContext) {
+                                return JoinPopUp(
+                                    courseName: course['course_name'],
+                                    courseID: course['course_ID'],
+                                    users: course['users'],
+                                    current_user_email: user?.email as String);
+                              },
+                            )
+                          }
+                        else
+                          {
+                            // render the dialog box JoinedPopUp
+                            print(
+                                "This course is a course that the user has already joined!"),
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext dialogContext) {
+                                return JoinedPopUp(
+                                    courseName: course['course_name'],
+                                    courseID: course['course_ID'],
+                                    users: course['users'],
+                                    current_user_email: user?.email as String);
+                              },
+                            )
+                          }
+                      },
+                    // Refresh the course card but not the data.
+                    setState(() {
+                      _CourseCardState;
+                    })
+                  },
+              background: const ColoredBox(
+                color: Colors.red,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Icon(
+                      Icons.chat,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              secondaryBackground: const ColoredBox(
+                color: Colors.orange,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Icon(Icons.info, color: Colors.white),
+                  ),
+                ),
+              ),
+              child: Center(child: GroupCard(courseData: course)));
+        });
+  }
+}
+
+// the group card renders the actual card itself without the dismissible feature.
+// This is where you can manipulate what is shown on the screen to the user. Working on the styling currently.
+class GroupCard extends StatelessWidget {
+  final Map<String, dynamic> courseData;
+  const GroupCard({super.key, required this.courseData});
+
+  @override
+  Widget build(BuildContext context) {
+    var course = courseData['courseconcat'];
+    var courseSection = courseData['course_section'];
+    return Card(
+      elevation: 3,
+      margin: const EdgeInsets.all(10),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            Text(
+              courseData['course_name']!,
+              style: const TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Text('Course:\n$course'),
+                Text('Course Section:\n$courseSection'),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// The joinedPopUp
+class JoinedPopUp extends StatelessWidget {
+  final String courseName;
+  final int courseID;
+  final List<dynamic> users;
+  final String current_user_email;
+  JoinedPopUp(
+      {required this.courseName,
+      required this.courseID,
+      required this.users,
+      required this.current_user_email});
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text('You have already Joined $courseName.'),
+            const SizedBox(height: 15),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Close'),
+            ),
+            TextButton(
+              onPressed: () async {
+                print(users);
+                users.remove(current_user_email);
+                await Supabase.instance.client
+                    .from('courses')
+                    .update({'users': users}).match({'course_ID': courseID});
+                Navigator.pop(context);
+              },
+              child: const Text('Leave'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class JoinPopUp extends StatelessWidget {
+  final String courseName;
+  final int courseID;
+  final List<dynamic> users;
+  final String current_user_email;
+
+  JoinPopUp(
+      {required this.courseName,
+      required this.courseID,
+      required this.users,
+      required this.current_user_email});
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text('Do you want to join $courseName?'),
+            const SizedBox(height: 15),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Close'),
+            ),
+            TextButton(
+              onPressed: () async {
+                users.add(current_user_email);
+                await Supabase.instance.client
+                    .from('courses')
+                    .update({'users': users}).match({'course_ID': courseID});
+                Navigator.pop(context);
+              },
+              child: const Text('Join'),
+            ),
+          ],
+        ),
       ),
     );
   }

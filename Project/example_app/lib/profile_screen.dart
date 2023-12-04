@@ -32,6 +32,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   late final Stream<List<Map<String, dynamic>>> _stream;
   List<String> user_groups = [];
+  List<String> user_matches = [];
 
   User? user = Supabase.instance.client.auth.currentUser;
 
@@ -66,6 +67,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (data['users'].length != 0 && data['users'].contains(user?.email)) {
           user_groups.add(data['course_name']);
         }
+      });
+    }
+  }
+
+  void fetchMatchNames(final matches) async {
+    // adding a check if groups is empty, then we just need to return "No groups"
+    if (matches.isEmpty) {
+      user_matches.add("No Matches! Go Match with other people!");
+      return;
+    }
+    for (var match in matches) {
+      final data = await Supabase.instance.client
+          .from('users')
+          .select('name')
+          .eq('email', match)
+          .single();
+      // print(data['users'].contains[user?.email));
+      setState(() {
+        user_matches.add(data['name']);
       });
     }
   }
@@ -111,15 +131,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // print(item['matches']);
               if (!hasFetched) {
                 fetchCourses(item['groups']);
+                fetchMatchNames(item['matches']);
                 hasFetched = true;
               }
-              List<dynamic> display_matches = [];
-              if (item['matches'].isEmpty) {
-                display_matches.add("No Matches! Go Match with other people!");
-              } else {
-                display_matches = item['matches'];
-              }
-              // print(item[]);
               return Center(
                 // Display the name of the item
                 //title: Text(item['name']),
@@ -224,7 +238,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: display_matches.map<Widget>((match) {
+                      children: user_matches.map<Widget>((match) {
                         return Container(
                           margin: const EdgeInsets.all(5),
                           color:
